@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title></title>
+    <script src="http://d3js.org/d3.v3.min.js"></script>
+    <script src="../blackhole.js"></script>
+    <script src="dat.gui.min.js"></script>
+    <script src="jquery-2.1.1.min.js"></script>
+    <script src="mock.js"></script>
+    <style type="text/css">
+    body,
+    html {
+        width: 100%;
+        height: 100%;
+        padding: 0;
+        position: relative;
+        margin: 0;
+        overflow: hidden;
+    }
+    
+    .svgStyle {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+    }
+    
+    #canvas {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+        overflow: hidden;
+        padding: 0;
+        margin: 0;
+        background: transparent;
+    }
+    </style>
+</head>
+
+<body>
+    <div id="canvas">
+        <canvas id="canvas_bh_0" style="position: absolute; top: 0px; left: 0px; transform: translate3d(0px, 0px, 0px);">This browser don't support element type of Canvas.</canvas>
+    </div>
+</body>
+<script type="text/javascript">
+var partnerManager = {
+        partners: [],
+        orderManager: {
+            name: "Order Manager",
+            key: -1,
+            img: "images/proceso.png"
+        },
+        img: ["datos.png", "soluciones.png", "capacidades.png"],
+        addPartner: function(newItem) {
+            this.partners.push(newItem);
+        },
+        updatePosition: function() {
+            var height = screen.height,
+                bellowHeight = height * 0.80,
+                width = screen.width - 40,
+                keys = Object.keys(this.partners),
+                keysSize = keys.length,
+                i = null,
+                index_0 = 0;
+
+            for (i in keys) {
+                this.partners[i]['x'] = (width / (keysSize + 1)) * (index_0 + 1);
+                this.partners[i]["y"] = bellowHeight;
+                index_0++;
+            }
+
+            this.orderManager.x = width / 2;
+            this.orderManager.y = height * 0.45;
+        },
+        getPartners: function() {
+            return this.partners;
+        },
+        getItem: function(index) {
+            return this.partners[index];
+        },
+        getItemByKey: function(key) {
+            return this.partners[key];
+        },
+        setPartners: function(partners) {
+            var me = this,
+                i = 0,
+                temp_0 = null,
+                images = me.img,
+                imgSize = images.length,
+                lg = partners.length;
+
+            delete me.partners;
+            me.partners = [];
+
+            for (i = 0; i < lg; i++) {
+                temp_0 = partners[i];
+
+                me.partners[temp_0.key] = {
+                    'name': temp_0.name,
+                    'key': temp_0.key,
+                    'position': 'below',
+                    'permanentFixed': true,
+                    'img': ('images/' + images[Math.floor(Math.random() * imgSize)])
+                };
+            }
+            me.updatePosition();
+        }
+    },
+    bh = initBlackHole(),
+    authorization = btoa("admin:eXistOfferGL"),
+    timer_0 = null,
+    menuConfig = {
+        'Start': function() {
+
+            if (bh.IsPaused()) {
+                bh.resume();
+            } else {
+                bh.pause();
+                setTimeout(function() {
+                    bh.stop();
+                    var store = randomData(4, defaultData, 100, partnerManager);
+                    bh.start(initData(store), null, null, true);
+                }, 1500);
+            }
+        },
+        'Pause': function() {
+
+            if (bh.IsRun()) {
+                bh.pause();
+            }
+        },
+        'Partner Name': '',
+        'Product Name': '',
+        'Add': function() {
+            partnerManager.addPartner({
+                'name': menuConfig['Partner Name'],
+                'key': menuConfig['Partner Name'],
+                'position': 'below',
+                'img': "images/datos.png",
+                'permanentFixed': true
+            });
+            partnerManager.updatePosition();
+            buildLayout(partnerManager);
+
+            menuConfig['Partner Name'] = "";
+            menuConfig['Product Name'] = "";
+        }
+    },
+    gui = new dat.GUI();
+
+
+// ************ MENU ****************
+
+gui.add(menuConfig, 'Start');
+gui.add(menuConfig, 'Pause');
+
+var folder1 = gui.addFolder('Add Partner');
+folder1.add(menuConfig, 'Partner Name').listen();
+folder1.add(menuConfig, 'Product Name').listen();
+folder1.add(menuConfig, 'Add');
+
+var folder2 = gui.addFolder('Online');
+
+function buildMenu(folder, menuConfig, offers, partnerManager, bh) {
+    var i,
+        proto;
+
+    for (var i = 0; i < offers.length; i++) {
+
+        proto = new prototype();
+        proto.setSettings(offerEvent(offers[i], partnerManager, 0), bh);
+
+        menuConfig[offers[i].name] = proto.toCall;
+        folder.add(menuConfig, offers[i].name);
+    }
+
+    folder.open();
+}
+
+function prototype() {
+    var _data = null,
+        _bh;
+    this.setSettings = function(data, bh) {
+        _data = data;
+        _bh = bh;
+    }
+    this.toCall = function() {
+        _bh.pause();
+        setTimeout(function() {
+            _bh.stop();
+            _bh.start(initData(_data), null, null, true);
+        }, 2000);
+    }
+}
+
+// ********************** INICIO ANIMACION *************************
+
+partnerManager.setPartners(defaultData.partners);
+buildMenu(folder2, menuConfig, defaultData.offers.offer, partnerManager, bh);
+buildLayout(partnerManager);
+
+menuConfig.Start();
+
+// ****************** POLLING ********************************
+
+/*(function poll() {
+    setTimeout(function() {
+        $.ajax({
+            type: "POST",
+            url: "http://192.168.10.102:8097/exist/rest/db/PRMmock/getOfertas.xql",
+            beforeSend: function(request) {
+                request.setRequestHeader("Authorization", "Basic " + authorization);
+            },
+            success: function(data) {
+                console.log(data);
+            },
+            error: function(xhr, status, error) {
+                // do stuff here
+            },
+            dataType: "json",
+            complete: poll
+        });
+    }, 10000);
+})();*/
+
+// *****************************************************************
+
+function initBlackHole() {
+    //d3.select('#canvas').selectAll('*').remove();
+
+    var stepDate = 1000,
+        bh = d3.blackHole('#canvas');
+
+    bh.setting.parentLife = 200;
+    bh.setting.rateOpacity = 1.0;
+    bh.setting.drawAsPlasma = true;
+    bh.setting.realtime = true;
+    bh.setting.asyncParsing = true;
+
+    bh.setting.increaseChild = true;
+    bh.setting.increaseChildWhenCreated = true;
+    bh.setting.createNearParent = false;
+    bh.setting.speed = 500;
+    bh.setting.skipEmptyDate = true;
+    bh.setting.zoomAndDrag = true;
+    bh.setting.drawParentLabel = true;
+    bh.setting.blendingLighter = true;
+    bh.setting.drawAsPlasma = true;
+    bh.setting.drawParent = true;
+
+    bh.setting.drawTrack = true;
+    bh.setting.drawHalo = true;
+    bh.setting.zoomAndDrag = false;
+    bh.setting.padding = 10;
+    bh.setting.rateFlash = 1;
+
+    var counter = 0;
+
+    bh.on('calcRightBound', function(l) {
+        return +l + stepDate;
+    }).on('getParentPosition', function(d) {
+        return [d.x, d.y];
+    }).on('getParentFixed', function(d) {
+        return d.permanentFixed;
+    }).on('getParentImage', function(d) {
+        var r = new Image();
+        r.src = d.img;
+        return r;
+    }).on('getParentLabel', function(nodeParent) {
+        return nodeParent.nodeValue.position == "above" ? nodeParent.nodeValue.name : "";
+    });
+
+    return bh;
+}
+
+function buildLayout(partnerManager) {
+
+    d3.select('body')
+        .selectAll('svg')
+        .remove();
+
+    var svg = d3.select('body')
+        .append('svg')
+        .attr('class', 'svgStyle')
+        .style('background', 'black');
+
+    var circleContainer = svg.selectAll('g')
+        .data(partnerManager.getPartners())
+        .enter()
+        .append('g');
+
+    var circles = circleContainer.append("svg:image")
+        .attr('x', function(d) {
+            return d.x - 25;
+        })
+        .attr('y', function(d) {
+            return d.y - 25;
+        })
+        .attr('width', 50)
+        .attr('height', 50)
+        .attr("xlink:href", function(d) {
+            return d.img;
+        });
+
+    var labels = circleContainer.append('text')
+        .attr("y", function(d) {
+            return d.y + 50
+        })
+        .attr("x", function(d) {
+            return d.x;
+        })
+        .style("font-size", "13px")
+        .style("fill", "white")
+        .style("font-family", "sans-serif")
+        .style("text-anchor", "middle")
+        .text(function(d) {
+            return d.name;
+        });
+
+    circleContainer.append("svg:image")
+        .attr('x', partnerManager.orderManager.x - 25)
+        .attr('y', partnerManager.orderManager.y - 25)
+        .attr('width', 50)
+        .attr('height', 50)
+        .attr("xlink:href", partnerManager.orderManager.img);
+
+    circleContainer.append('text')
+        .attr("y", partnerManager.orderManager.y + 50)
+        .attr("x", partnerManager.orderManager.x)
+        .style("font-size", "13px")
+        .style("fill", "white")
+        .style("font-family", "sans-serif")
+        .style("text-anchor", "middle")
+        .text(partnerManager.orderManager.name);
+
+    svg.append("svg:image")
+        .attr("width", 80)
+        .attr("height", 80)
+        .attr("x", 10)
+        .attr("y", screen.height * 0.5 - 40)
+        .attr("xlink:href", "images/offergl.png");
+
+    svg.append("svg:image")
+        .attr("width", 80)
+        .attr("height", 80)
+        .attr("x", 10)
+        .attr("y", screen.height * 0.5 - 140)
+        .attr("xlink:href", "images/catalogo.png");
+
+
+    // ********** ACTUALIZO BH ********************
+
+    var parents = bh.parents(),
+        temp,
+        parentTemp;
+    if (parents) {
+        parents.forEach(function(pos, item, self) {
+
+            temp = item.nodeValue;
+
+            if (temp != null && temp.position == 'below') {
+                parentTemp = partnerManager.getItemByKey(temp.key);
+                item.px = parentTemp.x;
+                item.py = parentTemp.y;
+            }
+        });
+    }
+}
+
+function initData(rawData) {
+
+    var height = screen.height,
+        width = screen.width - 40,
+        children = rawData,
+        parents = [],
+        keys_0 = [],
+        temp_0,
+        noDuplicates = [],
+        parentsNoDupl = [];
+
+    $(children).each(function(i, e) {
+        parents.push(e.parent);
+    });
+
+
+    $(parents).each(function(index, item) {
+        if (keys_0.indexOf(item.key) == -1) {
+            noDuplicates.push(item);
+            keys_0.push(item.key);
+        }
+    });
+
+
+    var belowParents = noDuplicates.filter(function(e) {
+            return e.position == "below";
+        }),
+        middleParents = noDuplicates.filter(function(e) {
+            return e.position == "middle";
+        }),
+        aboveParents = noDuplicates.filter(function(e) {
+            return e.position == "above";
+        });
+
+
+    belowParents.forEach(function(item, pos, self) {
+        parents.forEach(function(it) {
+            if (it.key == item.key) {
+                temp_0 = partnerManager.getItemByKey(item.key);
+                item.x = temp_0.x;
+                item.y = temp_0.y;
+                item.img = temp_0.img;
+            }
+        });
+    });
+
+
+    middleParents.forEach(function(item, pos, self) {
+        parents.forEach(function(it) {
+            if (it.key == item.key) {
+                it["x"] = width * (pos + 1) / (self.length + 1);
+                it["y"] = height * 0.45;
+            }
+        });
+    });
+
+    aboveParents.forEach(function(item, pos, self) {
+        parents.forEach(function(it) {
+            if (it.key == item.key) {
+                it["x"] = (width / (self.length + 1)) * (pos + 1);
+                it["y"] = height * 0.15;
+            }
+        });
+    });
+
+    children.forEach(function(item) {
+        if (item.sourceParentKey != null) {
+            var sourceParent = parents.filter(function(p) {
+                return p.key == item.sourceParentKey
+            })[0];
+
+            item["x"] = sourceParent.x;
+            item["y"] = sourceParent.y;
+        }
+    });
+
+    parentsNoDupl = noDuplicates.filter(function(item) {
+        return (item.position != 'above');
+    })
+    return rawData;
+}
+
+function randomData(maxClients, offerAndPartners, maxMessages, partnerManager) {
+    var toReturn = [],
+        offers = offerAndPartners.offers.offer,
+        offersSize = offers.length,
+        index_0 = 0,
+        random_0 = 0,
+        ONE_STEP = 1000,
+        now = Date.now() - ONE_STEP,
+        temp_0 = 0;
+
+
+    for (index_0 = 0; index_0 < maxMessages; index_0++) {
+
+
+        random_0 = Math.floor(Math.random() * offersSize); // es el indice de la oferta
+        toReturn = toReturn.concat(offerEvent(offers[random_0], partnerManager, temp_0, now));
+
+        temp_0 += offers[random_0].partner.length + 1;
+        now += ONE_STEP * 10;
+
+    }
+
+    return toReturn;
+}
+
+function offerEvent(offer, partnerManager, messageId, now) {
+
+    var names = ["Ernestine Benson", "Elbert Lindsey", "Celia  Peterson", "Rachel Morales", "Jacqueline Cole", "Harvey Jimenez", "Cheryl Goodman", "Fernando Zimmerman", "Rodney Mcdonald", "Lindsay Rice"],
+        toReturn = [],
+        ONE_STEP = 1000,
+        category,
+        maxClients = 5,
+
+        namesSize = names.length,
+        date_0,
+        index_0,
+        temp_1,
+        temp_2,
+        key_0 = 1,
+        partners = offer.partner,
+        partnerSize = partners.length;
+
+    now = now != null ? now : (Date.now() - ONE_STEP);
+
+    date_0 = new Date(now += ONE_STEP);
+
+    temp_1 = ('client_' + Math.floor(Math.random() * maxClients));
+
+    toReturn.push({
+        'key': messageId,
+        'category': offer.name,
+        'sourceParentKey': temp_1,
+        'parent': {
+            'key': temp_1,
+            'name': names[Math.floor(Math.random() * namesSize)],
+            'img': 'images/cliente.png',
+            'position': 'above',
+            'permanentFixed': true
+        },
+        'date': date_0
+    });
+
+    date_0 = new Date(now += ONE_STEP);
+
+    toReturn.push({
+        'key': messageId,
+        'category': offer.name,
+        'parent': {
+            'name': 'Order Manager',
+            'key': 'order_manager',
+            'position': 'middle',
+            'permanentFixed': true,
+            'img': 'images/proceso.png'
+        },
+        'date': date_0
+    });
+
+    date_0 = new Date(now += ONE_STEP);
+
+    for (index_0 = 0; index_0 < partnerSize; index_0++) {
+        temp_2 = partnerManager.getItemByKey(partners[index_0].key);
+        messageId++;
+        toReturn.push({
+            'key': messageId,
+            'category': offer.name,
+            'sourceParentKey': 'order_manager',
+            'parent': temp_2,
+            'date': date_0
+        });
+    }
+    return toReturn;
+
+}
+</script>
+
+</html>

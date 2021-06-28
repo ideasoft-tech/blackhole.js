@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <title>Process Monitor</title>
+</head>
+<body>
+<h1>Hello</h1>
+
+<div id="canvas"></div>
+<script src="https://d3js.org/d3.v3.min.js"></script>
+<script src="blackhole.js"></script>
+<script src="pview.js"></script>
+<script src="pevents.js"></script>
+<script src="pmonitor.js"></script>
+<script>
+
+    let pMonitor = new PMonitor("#canvas");
+    pMonitor.d3bh.start(data, 400, 400);
+
+</script>
+
+
+</body>
+
+</html>

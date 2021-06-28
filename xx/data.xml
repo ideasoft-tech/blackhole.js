@@ -1,0 +1,6 @@
+<all>
+  <event action="A" date="1624828771000" author="DG" filename="X"/>
+  <event action="M" date="1627441200000" author="DG" filename="Y"/>
+  <event action="M" date="1627527600000" author="A" filename="Y"/>
+  <event action="M" date="1627614000000" author="B" filename="Y"/>
+</all>

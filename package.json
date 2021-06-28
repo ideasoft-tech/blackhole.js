@@ -1,16 +1,29 @@
 {
-    "name": "blackhole.js",
-    "version": "1.0.0",
-    "private": true,
-    "devDependencies": {
-        "smash": "0.0.12",
-        "uglify-js": "^2.4.15"
-    },
-    "scripts": {
-        "clean": "rm -f -- blackhole.js blackhole.min.js",
-        "check": "smash --ignore-missing --list src/blackhole.js",
-        "build": "smash src/blackhole.js | uglifyjs - --comments -b indent-level=4 -o blackhole.js",
-        "mini": "node bin/uglify blackhole.js > blackhole.min.js",
-        "all": "npm run clean & npm run check & npm run build & npm run mini"
-    }
+  "name": "blackhole",
+  "version": "1.0.0",
+  "private": true,
+  "devDependencies": {
+    "smash": "0.0.12",
+    "uglify-js": "^2.4.15"
+  },
+  "scripts": {
+    "clean": "rm -f -- blackhole.js blackhole.min.js",
+    "check": "smash --ignore-missing --list src/blackhole.js",
+    "build": "smash src/blackhole.js | uglifyjs - --comments -b indent-level=4 -o blackhole.js",
+    "mini": "node bin/uglify blackhole.js > blackhole.min.js",
+    "all": "npm run clean & npm run check & npm run build & npm run mini"
+  },
+  "description": "blackHole.js ============",
+  "main": "blackhole.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ideasoft-tech/blackhole.js.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ideasoft-tech/blackhole.js/issues"
+  },
+  "homepage": "https://github.com/ideasoft-tech/blackhole.js#readme"
 }

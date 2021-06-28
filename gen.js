@@ -4,7 +4,7 @@
 
 var text = "Lorem ipsum dolor sit amet, consectetur adipisicing elit. Eaque eveniet fugit nemo, placeat quod repellendus vero. Autem cumque placeat sapiente?".split(' ')
     , rawData = []
-    , l = 1000
+    , l = 10
     , pl = 5
     , p, c
     , parents = []
