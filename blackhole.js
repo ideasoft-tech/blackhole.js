@@ -93,6 +93,7 @@
                 getValue: null,
                 getParentRadius: null,
                 getChildRadius: null,
+                getChildPosition: null,
                 getParentPosition: null,
                 getParentFixed: null,
                 onBeforeParsing: null,
@@ -152,6 +153,9 @@
             parser.setting.getParentFixed(function() {
                 return false;
             });
+            parser.setting.getChildPosition(function() {
+                return null;
+            });
         })();
         function doFunc(key) {
             return getFun(parser.setting, key);
@@ -185,8 +189,8 @@
             var x, y, w = parser.size[0], h = parser.size[1], w2 = w / 2, w5 = w / 5, h2 = h / 2, h5 = h / 5, parentPos;
             x = w * Math.random();
             y = h * Math.random();
-            !type == typeNode.child && (parentPos = parser.setting.getParentPosition()(d, [ x, y ]));
             if (type == typeNode.parent) {
+                parentPos = parser.setting.getParentPosition()(d, [ x, y ]);
                 if (!parentPos || parentPos.length < 2) {
                     if (randomTrue()) {
                         x = x > w5 && x < w2 ? x / 5 : x > w2 && x < w - w5 ? w - x / 5 : x;
@@ -196,6 +200,12 @@
                 } else {
                     x = parentPos[0];
                     y = parentPos[1];
+                }
+            } else {
+                const childPos = parser.setting.getChildPosition()(d, [ x, y ]);
+                if (childPos && childPos.length === 2) {
+                    x = childPos[0];
+                    y = childPos[1];
                 }
             }
             return {

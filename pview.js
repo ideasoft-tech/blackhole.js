@@ -1,35 +1,65 @@
 let d = new Date("2021-01-01T10:00:00")
 
-function ProcessDef() {
-    let sView = {
+function ProcessView() {
+    let processView = {
         name: "MainView"
     };
 
     (function () {
-        sView.nodes = new Map()
+        processView.nodes = new Map()
     })();
 
-    sView.load = function(jsonNodes) {
+    processView.load = function(jsonNodes) {
         jsonNodes.forEach(function (n) {
-            sView.nodes[n.name] = n;
+            processView.nodes[n.name] = n;
         });
     };
 
-    return sView;
+    return processView;
 }
 
-let pd = new ProcessDef
+let pView = new ProcessView
 
-let rawNodes = `[{
-      "name": "A",
-      "x": 20,
-      "y": 25
-    }]`
+let rawNodes = `[
+    {
+      "name": "Node0",
+      "x": 50,
+      "y": 50,
+      "fixed": true
+    },
+    {
+      "name": "Node1",
+      "x": 200,
+      "y": 100,
+      "fixed": true
+    },
+    {
+      "name": "Node2",
+      "x": 350,
+      "y": 150,
+      "fixed": true
+    },
+    {
+      "name": "Node3",
+      "x": 500,
+      "y": 200,
+      "fixed": true
+    },
+        {
+      "name": "Node4",
+      "x": 650,
+      "y": 250,
+      "fixed": true
+    }
+
+
+
+  ]`
 
 let jsonNodes = JSON.parse(rawNodes)
 
-pd.load(jsonNodes)
+pView.load(jsonNodes)
 
 console.log(d.toString())
 
-console.log(pd.nodes)
+console.log(pView.nodes)
